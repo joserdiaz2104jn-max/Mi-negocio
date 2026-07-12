@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Libro de Cuentas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink-green:#1F3D2B;
+    --ink-green-dark:#142A1D;
+    --paper:#F7F3E8;
+    --paper-line:#D8CFB8;
+    --paper-shadow:#00000022;
+    --brick:#A13D2B;
+    --blue-ink:#2C4A6B;
+    --gold:#B8862B;
+    --gold-light:#E8D5A3;
+    --text-main:#2A2620;
+    --text-soft:#6B6455;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink-green-dark);
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.03), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(255,255,255,0.02), transparent 40%);
+    font-family:'IBM Plex Sans', sans-serif;
+    color:var(--text-main);
+    min-height:100vh;
+    padding:32px 16px 80px;
+  }
+  .cover{
+    max-width:920px;
+    margin:0 auto 0;
+    background:var(--ink-green);
+    border-radius:10px 10px 0 0;
+    padding:28px 36px 22px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+    position:relative;
+  }
+  .cover::after{
+    content:'';
+    position:absolute;
+    left:0; right:0; bottom:-6px;
+    height:6px;
+    background:linear-gradient(180deg, rgba(0,0,0,0.25), transparent);
+  }
+  .cover-label{
+    font-family:'Special Elite', monospace;
+    color:var(--gold-light);
+    font-size:12px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    opacity:0.85;
+  }
+  .cover-title{
+    font-family:'Special Elite', monospace;
+    color:var(--paper);
+    font-size:32px;
+    margin:6px 0 4px;
+  }
+  .cover-sub{
+    color:var(--gold-light);
+    font-size:13px;
+    opacity:0.8;
+  }
+  .paper{
+    max-width:920px;
+    margin:0 auto;
+    background:var(--paper);
+    box-shadow:0 20px 50px rgba(0,0,0,0.45);
+    border-radius:0 0 10px 10px;
+    padding:0;
+  }
+  .section{
+    padding:28px 36px;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .section:last-child{border-bottom:none;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--text-soft);
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--paper-line);
+  }
+
+  /* Ingreso row */
+  .ingreso-row{
+    display:flex;
+    align-items:baseline;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+  .ingreso-row label{
+    font-size:13px;
+    color:var(--text-soft);
+  }
+  .ingreso-row input{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:22px;
+    font-weight:600;
+    border:none;
+    border-bottom:2px dashed var(--paper-line);
+    background:transparent;
+    color:var(--ink-green);
+    width:150px;
+    padding:2px 4px;
+  }
+  .ingreso-row input:focus{outline:none; border-bottom-color:var(--gold);}
+  .save-hint{font-size:11px; color:var(--text-soft); font-style:italic;}
+
+  /* Coin / donut */
+  .coin-wrap{
+    display:flex;
+    gap:32px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .coin{
+    flex-shrink:0;
+  }
+  .legend{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+  }
+  .legend-item{display:flex; align-items:center; gap:10px;}
+  .dot{width:11px; height:11px; border-radius:50%; flex-shrink:0;}
+  .legend-item b{font-size:14px;}
+  .legend-item span.pct{color:var(--text-soft); margin-left:auto; padding-left:20px;}
+
+  /* Category cards */
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
+  }
+  @media (max-width:680px){ .cards{grid-template-columns:1fr;} }
+  .card{
+    background:#fff;
+    border:1px solid var(--paper-line);
+    border-radius:8px;
+    padding:16px 18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .card-cat{font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-soft);}
+  .card-amounts{margin-top:6px; display:flex; align-items:baseline; gap:6px;}
+  .card-amounts .spent{font-size:22px; font-weight:700; font-family:'IBM Plex Mono', monospace;}
+  .card-amounts .budget{font-size:13px; color:var(--text-soft); font-family:'IBM Plex Mono', monospace;}
+  .bar-track{margin-top:10px; height:8px; border-radius:4px; background:#EEE7D6; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:4px; transition:width .4s ease;}
+  .card-pct{margin-top:6px; font-size:12px; color:var(--text-soft); font-family:'IBM Plex Mono', monospace;}
+
+  /* Form */
+  .form-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:flex-end;
+  }
+  .field{display:flex; flex-direction:column; gap:5px;}
+  .field label{font-size:11px; color:var(--text-soft); font-family:'IBM Plex Mono', monospace; letter-spacing:0.5px;}
+  .field input, .field select{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    padding:9px 10px;
+    border:1px solid var(--paper-line);
+    border-radius:6px;
+    background:#fff;
+    color:var(--text-main);
+  }
+  .field input:focus, .field select:focus{outline:none; border-color:var(--gold);}
+  #f-desc{width:180px;}
+  #f-monto{width:100px;}
+  .btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.5px;
+    background:var(--ink-green);
+    color:var(--paper);
+    border:none;
+    padding:10px 20px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:background .2s;
+  }
+  .btn:hover{background:var(--ink-green-dark);}
+
+  /* Ledger */
+  .ledger{
+    width:100%;
+    border-collapse:collapse;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+  }
+  .ledger thead th{
+    text-align:left;
+    font-size:10px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--text-soft);
+    padding-bottom:8px;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .ledger tbody tr{border-bottom:1px dashed var(--paper-line);}
+  .ledger tbody tr:hover{background:#00000006;}
+  .ledger td{padding:9px 4px; vertical-align:middle;}
+  .ledger td.monto{text-align:right; font-weight:600;}
+  .cat-chip{
+    display:inline-block;
+    font-size:10px;
+    padding:2px 8px;
+    border-radius:20px;
+    color:#fff;
+    letter-spacing:0.5px;
+  }
+  .cat-necesidad{background:var(--blue-ink);}
+  .cat-deseo{background:var(--gold);}
+  .cat-ahorro{background:var(--ink-green);}
+  .del-btn{
+    background:none; border:none; color:var(--brick); cursor:pointer;
+    font-size:14px; opacity:0.6;
+  }
+  .del-btn:hover{opacity:1;}
+  .empty-state{
+    text-align:center;
+    padding:30px 10px;
+    color:var(--text-soft);
+    font-size:13px;
+    font-style:italic;
+  }
+
+  /* Summary footer */
+  .summary{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .summary .label{font-size:12px; color:var(--text-soft); font-family:'IBM Plex Mono', monospace; letter-spacing:1px; text-transform:uppercase;}
+  .summary .value{font-size:26px; font-weight:700; font-family:'IBM Plex Mono', monospace; color:var(--ink-green);}
+  .summary .value.negative{color:var(--brick);}
+
+  .status-bar{
+    max-width:920px;
+    margin:10px auto 0;
+    font-size:11px;
+    color:var(--gold-light);
+    font-family:'IBM Plex Mono', monospace;
+    text-align:right;
+    padding-right:8px;
+    opacity:0.7;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-label">Finanzas personales · José</div>
+  <div class="cover-title">Mi Libro de Cuentas</div>
+  <div class="cover-sub" id="mes-actual">—</div>
+</div>
+
+<div class="paper">
+
+  <!-- Ingreso -->
+  <div class="section">
+    <div class="eyebrow">Ingreso disponible del mes</div>
+    <div class="ingreso-row">
+      <label>S/</label>
+      <input type="number" id="ingreso-input" step="0.01" placeholder="0.00">
+      <span class="save-hint" id="ingreso-hint">se guarda automáticamente</span>
+    </div>
+  </div>
+
+  <!-- Coin chart -->
+  <div class="section">
+    <div class="eyebrow">Distribución 50 / 30 / 20</div>
+    <div class="coin-wrap">
+      <svg class="coin" width="150" height="150" viewBox="0 0 150 150">
+        <circle cx="75" cy="75" r="60" fill="none" stroke="#EEE7D6" stroke-width="18"/>
+        <circle id="arc-necesidad" cx="75" cy="75" r="60" fill="none" stroke="#2C4A6B" stroke-width="18" stroke-dasharray="0 377" transform="rotate(-90 75 75)"/>
+        <circle id="arc-deseo" cx="75" cy="75" r="60" fill="none" stroke="#B8862B" stroke-width="18" stroke-dasharray="0 377" transform="rotate(-90 75 75)"/>
+        <circle id="arc-ahorro" cx="75" cy="75" r="60" fill="none" stroke="#1F3D2B" stroke-width="18" stroke-dasharray="0 377" transform="rotate(-90 75 75)"/>
+        <text x="75" y="70" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#6B6455">gastado</text>
+        <text id="coin-total" x="75" y="90" text-anchor="middle" font-family="IBM Plex Mono" font-size="16" font-weight="700" fill="#2A2620">S/ 0</text>
+      </svg>
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background:#2C4A6B"></span><b>Necesidades</b> <span class="save-hint">meta 50%</span><span class="pct" id="pct-necesidad">0%</span></div>
+        <div class="legend-item"><span class="dot" style="background:#B8862B"></span><b>Deseos</b> <span class="save-hint">meta 30%</span><span class="pct" id="pct-deseo">0%</span></div>
+        <div class="legend-item"><span class="dot" style="background:#1F3D2B"></span><b>Ahorro</b> <span class="save-hint">meta 20%</span><span class="pct" id="pct-ahorro">0%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="section">
+    <div class="eyebrow">Avance por categoría</div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-cat">Necesidades</div>
+        <div class="card-amounts"><span class="spent" id="cardspent-necesidad">S/ 0</span><span class="budget" id="cardbudget-necesidad">/ S/ 0</span></div>
+        <div class="bar-track"><div class="bar-fill" id="bar-necesidad" style="width:0%; background:#2C4A6B;"></div></div>
+        <div class="card-pct" id="cardpct-necesidad">0% de la meta</div>
+      </div>
+      <div class="card">
+        <div class="card-cat">Deseos</div>
+        <div class="card-amounts"><span class="spent" id="cardspent-deseo">S/ 0</span><span class="budget" id="cardbudget-deseo">/ S/ 0</span></div>
+        <div class="bar-track"><div class="bar-fill" id="bar-deseo" style="width:0%; background:#B8862B;"></div></div>
+        <div class="card-pct" id="cardpct-deseo">0% de la meta</div>
+      </div>
+      <div class="card">
+        <div class="card-cat">Ahorro</div>
+        <div class="card-amounts"><span class="spent" id="cardspent-ahorro">S/ 0</span><span class="budget" id="cardbudget-ahorro">/ S/ 0</span></div>
+        <div class="bar-track"><div class="bar-fill" id="bar-ahorro" style="width:0%; background:#1F3D2B;"></div></div>
+        <div class="card-pct" id="cardpct-ahorro">0% de la meta</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add expense -->
+  <div class="section">
+    <div class="eyebrow">Registrar gasto</div>
+    <div class="form-row">
+      <div class="field">
+        <label>Descripción</label>
+        <input type="text" id="f-desc" placeholder="Ej. Mercado">
+      </div>
+      <div class="field">
+        <label>Monto (S/)</label>
+        <input type="number" id="f-monto" step="0.01" placeholder="0.00">
+      </div>
+      <div class="field">
+        <label>Categoría</label>
+        <select id="f-cat">
+          <option value="necesidad">Necesidad</option>
+          <option value="deseo">Deseo</option>
+          <option value="ahorro">Ahorro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="f-fecha">
+      </div>
+      <button class="btn" id="btn-add">+ Agregar</button>
+    </div>
+  </div>
+
+  <!-- Ledger -->
+  <div class="section">
+    <div class="eyebrow">Movimientos del mes</div>
+    <table class="ledger">
+      <thead>
+        <tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th style="text-align:right;">Monto</th><th></th></tr>
+      </thead>
+      <tbody id="ledger-body"></tbody>
+    </table>
+    <div class="empty-state" id="empty-state" style="display:none;">Aún no hay movimientos registrados este mes.</div>
+  </div>
+
+  <!-- Summary -->
+  <div class="section">
+    <div class="summary">
+      <div>
+        <div class="label">Saldo libre</div>
+        <div class="value" id="saldo-libre">S/ 0.00</div>
+      </div>
+      <div>
+        <div class="label">Total gastado</div>
+        <div class="value" id="total-gastado" style="color:#6B6455;">S/ 0.00</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="status-bar" id="status-bar">conectando…</div>
+
+<script>
+// ==========================================================
+// CONEXIÓN A FIREBASE (misma base que app_pedidos.html)
+// Se usa el mismo método REST por fetch que ya usa tu app de
+// pedidos, sin SDK ni claves. Los datos de este dashboard se
+// guardan en una rama separada: /finanzas-personales/, así
+// que no se mezclan con los datos de tu negocio.
+// ==========================================================
+const DB = 'https://mi-negocio-ad3cc-default-rtdb.firebaseio.com';
+const ROOT = 'finanzas-personales';
+
+const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const hoy = new Date();
+const mesId = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
+document.getElementById('mes-actual').textContent = `${meses[hoy.getMonth()]} ${hoy.getFullYear()}`;
+document.getElementById('f-fecha').value = hoy.toISOString().slice(0,10);
+
+const MES_URL = `${DB}/${ROOT}/${mesId}`;
+
+let ingresoActual = 0;
+let gastos = {};
+let sseSource = null;
+
+const CIRCUM = 2 * Math.PI * 60; // ~377
+
+function fmt(n){
+  return 'S/ ' + (n||0).toLocaleString('es-PE', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function recalcular(){
+  const metaNecesidad = ingresoActual * 0.50;
+  const metaDeseo     = ingresoActual * 0.30;
+  const metaAhorro    = ingresoActual * 0.20;
+
+  let sumNecesidad=0, sumDeseo=0, sumAhorro=0;
+  Object.values(gastos).forEach(g=>{
+    if(g.categoria==='necesidad') sumNecesidad += Number(g.monto)||0;
+    else if(g.categoria==='deseo') sumDeseo += Number(g.monto)||0;
+    else if(g.categoria==='ahorro') sumAhorro += Number(g.monto)||0;
+  });
+
+  const total = sumNecesidad + sumDeseo + sumAhorro;
+
+  // cards
+  setCard('necesidad', sumNecesidad, metaNecesidad);
+  setCard('deseo', sumDeseo, metaDeseo);
+  setCard('ahorro', sumAhorro, metaAhorro);
+
+  // legend %
+  const pct = (v)=> ingresoActual>0 ? ((v/ingresoActual)*100).toFixed(1)+'%' : '0%';
+  document.getElementById('pct-necesidad').textContent = pct(sumNecesidad);
+  document.getElementById('pct-deseo').textContent = pct(sumDeseo);
+  document.getElementById('pct-ahorro').textContent = pct(sumAhorro);
+
+  // coin arcs (stacked)
+  const fracN = total>0 ? sumNecesidad/total : 0;
+  const fracD = total>0 ? sumDeseo/total : 0;
+  const fracA = total>0 ? sumAhorro/total : 0;
+
+  setArc('arc-necesidad', 0, fracN);
+  setArc('arc-deseo', fracN, fracD);
+  setArc('arc-ahorro', fracN+fracD, fracA);
+  document.getElementById('coin-total').textContent = fmt(total).replace('S/ ','S/');
+
+  // summary
+  const saldoLibre = ingresoActual - total;
+  const saldoEl = document.getElementById('saldo-libre');
+  saldoEl.textContent = fmt(saldoLibre);
+  saldoEl.classList.toggle('negative', saldoLibre < 0);
+  document.getElementById('total-gastado').textContent = fmt(total);
+}
+
+function setArc(id, offsetFrac, lenFrac){
+  const el = document.getElementById(id);
+  const len = lenFrac * CIRCUM;
+  const gap = CIRCUM - len;
+  el.setAttribute('stroke-dasharray', `${len} ${gap}`);
+  el.setAttribute('stroke-dashoffset', -offsetFrac * CIRCUM);
+}
+
+function setCard(cat, spent, budget){
+  document.getElementById(`cardspent-${cat}`).textContent = fmt(spent);
+  document.getElementById(`cardbudget-${cat}`).textContent = '/ ' + fmt(budget);
+  const pct = budget>0 ? Math.min((spent/budget)*100, 999) : 0;
+  document.getElementById(`cardpct-${cat}`).textContent = budget>0 ? `${pct.toFixed(0)}% de la meta` : 'define tu ingreso arriba';
+  const bar = document.getElementById(`bar-${cat}`);
+  bar.style.width = Math.min(pct,100)+'%';
+  bar.style.background = pct>100 ? '#A13D2B' : bar.style.background;
+}
+
+function renderLedger(){
+  const body = document.getElementById('ledger-body');
+  const empty = document.getElementById('empty-state');
+  const entries = Object.entries(gastos).sort((a,b)=> (b[1].fecha||'').localeCompare(a[1].fecha||''));
+  if(entries.length===0){
+    body.innerHTML='';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+  body.innerHTML = entries.map(([id,g])=>{
+    const chipClass = g.categoria==='necesidad' ? 'cat-necesidad' : g.categoria==='deseo' ? 'cat-deseo' : 'cat-ahorro';
+    const chipLabel = g.categoria==='necesidad' ? 'Necesidad' : g.categoria==='deseo' ? 'Deseo' : 'Ahorro';
+    return `<tr>
+      <td>${g.fecha||''}</td>
+      <td>${g.descripcion||''}</td>
+      <td><span class="cat-chip ${chipClass}">${chipLabel}</span></td>
+      <td class="monto">${fmt(g.monto)}</td>
+      <td><button class="del-btn" onclick="eliminarGasto('${id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function setStatus(msg){
+  document.getElementById('status-bar').textContent = msg;
+}
+
+// ==========================================================
+// LECTURA / ESCRITURA POR REST (mismo patrón que app_pedidos.html)
+// ==========================================================
+async function cargarDatos(){
+  try{
+    const res = await fetch(`${MES_URL}.json`);
+    if(!res.ok) throw new Error('network');
+    const data = await res.json();
+    ingresoActual = (data && data.ingreso) || 0;
+    gastos = (data && data.gastos) || {};
+    document.getElementById('ingreso-input').value = ingresoActual || '';
+    renderLedger();
+    recalcular();
+    setStatus('conectado · actualizando en vivo');
+  }catch(e){
+    setStatus('sin conexión, reintentando…');
+  }
+}
+
+function startRealtime(){
+  if(sseSource) sseSource.close();
+  sseSource = new EventSource(`${MES_URL}.json`);
+  sseSource.addEventListener('put', ()=> cargarDatos());
+  sseSource.addEventListener('patch', ()=> cargarDatos());
+  sseSource.onerror = ()=> setStatus('sin conexión, reintentando…');
+  sseSource.onopen  = ()=> setStatus('conectado · actualizando en vivo');
+}
+
+async function eliminarGasto(id){
+  delete gastos[id];
+  renderLedger();
+  recalcular();
+  try{
+    await fetch(`${MES_URL}/gastos/${id}.json`, {method:'DELETE'});
+  }catch(e){
+    setStatus('no se pudo borrar, revisa tu conexión');
+  }
+}
+window.eliminarGasto = eliminarGasto;
+
+// guardar ingreso (debounced)
+let ingresoTimeout;
+document.getElementById('ingreso-input').addEventListener('input', (e)=>{
+  clearTimeout(ingresoTimeout);
+  const val = parseFloat(e.target.value) || 0;
+  ingresoActual = val;
+  recalcular();
+  document.getElementById('ingreso-hint').textContent = 'guardando…';
+  ingresoTimeout = setTimeout(async ()=>{
+    try{
+      await fetch(`${MES_URL}/ingreso.json`, {
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(val)
+      });
+      document.getElementById('ingreso-hint').textContent = 'se guarda automáticamente';
+    }catch(e){
+      document.getElementById('ingreso-hint').textContent = 'error al guardar, revisa tu conexión';
+    }
+  }, 500);
+});
+
+// agregar gasto
+document.getElementById('btn-add').addEventListener('click', async ()=>{
+  const desc = document.getElementById('f-desc').value.trim();
+  const monto = parseFloat(document.getElementById('f-monto').value);
+  const cat = document.getElementById('f-cat').value;
+  const fecha = document.getElementById('f-fecha').value || hoy.toISOString().slice(0,10);
+
+  if(!desc || !monto || monto<=0){
+    alert('Ingresa una descripción y un monto válido.');
+    return;
+  }
+
+  const gasto = {descripcion:desc, monto:monto, categoria:cat, fecha:fecha};
+
+  try{
+    const res = await fetch(`${MES_URL}/gastos.json`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(gasto)
+    });
+    const data = await res.json(); // {name: "-Nxxxxx"}
+    gastos[data.name] = gasto;
+    renderLedger();
+    recalcular();
+  }catch(e){
+    alert('No se pudo guardar el gasto, revisa tu conexión.');
+  }
+
+  document.getElementById('f-desc').value='';
+  document.getElementById('f-monto').value='';
+});
+
+// arranque
+cargarDatos();
+startRealtime();
+</script>
+
+</body>
+</html>
